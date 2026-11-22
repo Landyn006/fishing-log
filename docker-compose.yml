@@ -1,0 +1,13 @@
+services:
+  fishing-log-api:
+    build: .
+    container_name: fishing-log-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - fishing-data:/app/server
+    restart: unless-stopped
+
+volumes:
+  fishing-data:
+  
