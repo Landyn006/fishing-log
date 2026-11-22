@@ -1,28 +1,45 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getTrips, saveTrip } from './api'
 import './App.css'
 
 function App() {
   const [trips, setTrips] = useState([])
   const [date, setDate] = useState('')
   const [location, setLocation] = useState('')
+  const [message, setMessage] = useState('Loading fishing trips...')
+  const [loading, setLoading] = useState(false)
 
-  function addTrip(event) {
+  useEffect(() => {
+    async function loadTrips() {
+      try {
+        const savedTrips = await getTrips()
+        setTrips(savedTrips)
+        setMessage('')
+      } catch (error) {
+        setMessage('Could not connect to the fishing database.')
+      }
+    }
+
+    loadTrips()
+  }, [])
+
+  async function addTrip(event) {
     event.preventDefault()
+    setLoading(true)
+    setMessage('')
 
-    if (!date || !location.trim()) {
-      return
+    try {
+      const newTrip = await saveTrip({ date, location })
+      setTrips((previousTrips) => [newTrip, ...previousTrips])
+      setDate('')
+      setLocation('')
+      setMessage('Fishing trip saved successfully!')
+    } catch (error) {
+      setMessage('Unable to save trip. Please try again.')
+    } finally {
+      setLoading(false)
     }
-
-    const newTrip = {
-      id: Date.now(),
-      date,
-      location
-    }
-
-    setTrips([...trips, newTrip])
-    setDate('')
-    setLocation('')
   }
 
   return (
@@ -61,8 +78,12 @@ function App() {
               required
             />
 
-            <button type="submit">Save Fishing Trip</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Save Fishing Trip'}
+            </button>
           </form>
+
+          {message && <p>{message}</p>}
         </section>
 
         <section className="card">
