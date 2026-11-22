@@ -26,3 +26,30 @@ export async function saveTrip(trip) {
 
   return response.json()
 }
+// Get all fish catches
+export async function getCatches() {
+  const response = await fetch(`${API_URL}/catches`)
+
+  if (!response.ok) {
+    throw new Error('Could not load fish catches.')
+  }
+
+  return response.json()
+}
+
+// Save a fish catch
+export async function saveCatch(catchData) {
+  const response = await fetch(`${API_URL}/catches`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(catchData)
+  })
+
+  if (!response.ok) {
+    throw new Error('Could not save fish catch.')
+  }
+
+  return response.json()
+}

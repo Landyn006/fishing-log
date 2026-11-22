@@ -1,4 +1,3 @@
-
 const express = require('express')
 const cors = require('cors')
 const Database = require('better-sqlite3')
@@ -19,6 +18,18 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
     location TEXT NOT NULL
+  )
+`)
+
+// Create the fish catches table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS catches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trip_id INTEGER NOT NULL,
+    species TEXT NOT NULL,
+    weight REAL,
+    length REAL,
+    FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
   )
 `)
 
@@ -57,6 +68,56 @@ app.post('/api/trips', (req, res) => {
   res.status(201).json(trip)
 })
 
+// Get all fish catches
+app.get('/api/catches', (req, res) => {
+  const catches = db.prepare(`
+    SELECT catches.*, trips.date, trips.location
+    FROM catches
+    JOIN trips ON catches.trip_id = trips.id
+    ORDER BY catches.id DESC
+  `).all()
+
+  res.json(catches)
+})
+
+// Save a fish catch
+app.post('/api/catches', (req, res) => {
+  const { trip_id, species, weight, length } = req.body
+
+  if (!trip_id || !species || !species.trim()) {
+    return res.status(400).json({
+      error: 'A fishing trip and fish species are required.'
+    })
+  }
+
+  const trip = db.prepare(
+    'SELECT * FROM trips WHERE id = ?'
+  ).get(trip_id)
+
+  if (!trip) {
+    return res.status(404).json({
+      error: 'Fishing trip not found.'
+    })
+  }
+
+  const result = db.prepare(`
+    INSERT INTO catches (trip_id, species, weight, length)
+    VALUES (?, ?, ?, ?)
+  `).run(
+    trip_id,
+    species.trim(),
+    weight === '' || weight == null ? null : Number(weight),
+    length === '' || length == null ? null : Number(length)
+  )
+
+  const newCatch = db.prepare(
+    'SELECT * FROM catches WHERE id = ?'
+  ).get(result.lastInsertRowid)
+
+  res.status(201).json(newCatch)
+})
+
+// Start the server
 app.listen(PORT, () => {
   console.log(`Fishing Log API running at http://localhost:${PORT}`)
 })
