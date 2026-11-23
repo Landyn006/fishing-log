@@ -1,10 +1,11 @@
+
 const express = require('express')
 const cors = require('cors')
 const Database = require('better-sqlite3')
 const path = require('path')
 
 const app = express()
-const PORT = 3000
+const PORT = process.env.PORT || 3000
 
 app.use(cors())
 app.use(express.json())
@@ -117,7 +118,7 @@ app.post('/api/catches', (req, res) => {
   res.status(201).json(newCatch)
 })
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Fishing Log API running at http://localhost:${PORT}`)
+// Start the server using the port provided by the hosting platform
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Fishing Log API running on port ${PORT}`)
 })
