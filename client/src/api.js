@@ -1,5 +1,5 @@
 
-const API_URL = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'https://fishing-log-82968105186.us-east1.run.app/api'
 
 export async function getTrips() {
   const response = await fetch(`${API_URL}/trips`)
@@ -26,6 +26,7 @@ export async function saveTrip(trip) {
 
   return response.json()
 }
+
 // Get all fish catches
 export async function getCatches() {
   const response = await fetch(`${API_URL}/catches`)
